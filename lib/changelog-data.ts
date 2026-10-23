@@ -1,4 +1,4 @@
-export type ChangelogCategory = 'Pembaruan' | 'Pemeliharaan' | 'Gangguan' | 'Selesai';
+export type ChangelogCategory = 'Pembaruan' | 'Peningkatan' | 'Pemeliharaan' | 'Gangguan' | 'Selesai';
 
 export interface ChangelogItem {
   id: string;
@@ -8,6 +8,7 @@ export interface ChangelogItem {
   impact?: 'none' | 'minor' | 'major' | 'critical';
   summary: string;
   details: string[];
+  note?: string;
 }
 
 export interface ImprovementPlanItem {
@@ -25,6 +26,24 @@ export const IMPACT_LABELS: Record<string, string> = {
 };
 
 export const CHANGELOG_ITEMS: ChangelogItem[] = [
+  {
+    id: 'ch-007',
+    date: '2026-10-23',
+    title: 'Peningkatan Akurasi Monitoring Latensi DNS',
+    category: 'Peningkatan',
+    impact: 'none',
+    summary:
+      'Pembaruan sistem monitoring untuk memberikan gambaran latensi layanan DNS yang lebih terperinci. Pengukuran DoT dan DoH kini memisahkan waktu pembentukan koneksi dari waktu penyelesaian kueri DNS.',
+    details: [
+      'Menambahkan metrik waktu koneksi (connectionLatencyMs) untuk mengukur proses setup koneksi, termasuk TCP dan TLS.',
+      'Menambahkan metrik waktu kueri DNS (dnsQueryLatencyMs) hingga respons DNS lengkap diterima.',
+      'Mempertahankan latensi total (totalLatencyMs) untuk memantau keseluruhan proses probe.',
+      'Menyempurnakan pengukuran respons DoH agar mencakup pembacaan seluruh body respons DNS.',
+      'Memperbarui kartu status layanan dan riwayat probe agar rincian latensi dapat ditampilkan jika tersedia.',
+      'Mempertahankan kompatibilitas dengan data probe lama melalui fallback pada penyimpanan.',
+    ],
+    note: 'Pembaruan ini meningkatkan transparansi pengukuran dan membantu membedakan waktu koneksi dari waktu kueri DNS. Pembaruan ini tidak dengan sendirinya membuktikan bahwa latensi layanan DNS telah menurun.',
+  },
   {
     id: 'ch-006',
     date: '2026-10-22',

@@ -18,7 +18,7 @@ import {
   IMPACT_LABELS,
 } from '@/lib/changelog-data';
 
-const CATEGORIES = ['Semua', 'Pembaruan', 'Pemeliharaan', 'Gangguan', 'Selesai'] as const;
+const CATEGORIES = ['Semua', 'Pembaruan', 'Peningkatan', 'Pemeliharaan', 'Gangguan', 'Selesai'] as const;
 
 export default function ChangelogPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
@@ -31,6 +31,7 @@ export default function ChangelogPage() {
   const getCategoryIcon = (cat: ChangelogCategory) => {
     switch (cat) {
       case 'Pembaruan':
+      case 'Peningkatan':
         return <Sparkles className="w-3.5 h-3.5 text-blue-600" />;
       case 'Pemeliharaan':
         return <Wrench className="w-3.5 h-3.5 text-amber-600" />;
@@ -44,6 +45,7 @@ export default function ChangelogPage() {
   const getCategoryColor = (cat: ChangelogCategory) => {
     switch (cat) {
       case 'Pembaruan':
+      case 'Peningkatan':
         return 'text-blue-700';
       case 'Pemeliharaan':
         return 'text-amber-700';
@@ -155,7 +157,7 @@ export default function ChangelogPage() {
 
                 {/* Bulleted details */}
                 {item.details && item.details.length > 0 && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-700 shadow-xs">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-700 shadow-xs space-y-3">
                     <ul className="space-y-1.5 list-disc pl-4 leading-relaxed">
                       {item.details.map((detail, idx) => (
                         <li key={idx} className="text-slate-600">
@@ -163,6 +165,11 @@ export default function ChangelogPage() {
                         </li>
                       ))}
                     </ul>
+                    {item.note && (
+                      <p className="text-xs text-slate-500 pt-2 border-t border-slate-200/80 leading-relaxed">
+                        <strong className="text-slate-700 font-medium">Catatan:</strong> {item.note}
+                      </p>
+                    )}
                   </div>
                 )}
               </article>

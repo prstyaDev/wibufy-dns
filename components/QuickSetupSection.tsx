@@ -103,7 +103,7 @@ export function QuickSetupSection() {
       </div>
 
       {/* Tab Panels */}
-      <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-8 shadow-xs">
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 min-[375px]:p-6 sm:p-8 shadow-xs">
         {/* Android Tab */}
         {activeTab === 'android' && (
           <div className="space-y-6">

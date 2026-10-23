@@ -32,7 +32,7 @@ export function ServiceCard({
   const isOperational = status === 'operational';
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 min-[375px]:p-6 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
       <div>
         {/* Header with Protocol & Status Indicator */}
         <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">

@@ -47,7 +47,7 @@ export function Footer() {
 
   return (
     <footer className="w-full border-t border-slate-200 bg-slate-50 mt-12 sm:mt-20 text-slate-600 text-sm">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="max-w-6xl mx-auto px-4 min-[375px]:px-6 sm:px-6 py-8 sm:py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Col 1: About & Identity */}
           <div className="md:col-span-2 space-y-3">
