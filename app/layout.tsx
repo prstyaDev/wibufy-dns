@@ -58,7 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-screen flex flex-col justify-between bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900">
         <StatusProvider initialSummary={initialSummary}>
           <Header />
-          <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 pt-3 pb-8 sm:py-8">
             {children}
           </main>
           <Footer />

@@ -16,9 +16,9 @@ export function PrivacyProtectionSection() {
       </div>
 
       {/* 4 Technical Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         {/* Card 1: Transport Encryption */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-2.5 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 space-y-2.5 shadow-xs">
           <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
             <Lock className="w-4 h-4" />
           </div>
@@ -31,7 +31,7 @@ export function PrivacyProtectionSection() {
         </div>
 
         {/* Card 2: Filter List */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-2.5 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 space-y-2.5 shadow-xs">
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100">
             <Shield className="w-4 h-4" />
           </div>
@@ -44,7 +44,7 @@ export function PrivacyProtectionSection() {
         </div>
 
         {/* Card 3: DNS vs VPN */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-2.5 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 space-y-2.5 shadow-xs">
           <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
             <EyeOff className="w-4 h-4" />
           </div>
@@ -57,7 +57,7 @@ export function PrivacyProtectionSection() {
         </div>
 
         {/* Card 4: Architecture */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-2.5 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 space-y-2.5 shadow-xs">
           <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200">
             <Layers className="w-4 h-4" />
           </div>
@@ -71,7 +71,7 @@ export function PrivacyProtectionSection() {
       </div>
 
       {/* Ad-blocking reality callout */}
-      <div className="bg-amber-50/80 rounded-xl border border-amber-200 p-5 sm:p-6 text-slate-800">
+      <div className="bg-amber-50/80 rounded-xl border border-amber-200 p-4 sm:p-6 text-slate-800">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="space-y-1.5">

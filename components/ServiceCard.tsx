@@ -32,10 +32,10 @@ export function ServiceCard({
   const isOperational = status === 'operational';
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
       <div>
         {/* Header with Protocol & Status Indicator */}
-        <div className="flex items-start justify-between gap-4 mb-3">
+        <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
@@ -43,7 +43,7 @@ export function ServiceCard({
               </span>
               <span className="text-xs text-slate-500 font-normal">{protocol}</span>
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 tracking-tight">{title}</h3>
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight">{title}</h3>
           </div>
 
           <div className="shrink-0 pt-0.5">
@@ -63,10 +63,10 @@ export function ServiceCard({
           </div>
         </div>
 
-        <p className="text-xs text-slate-600 mb-4 leading-relaxed">{description}</p>
+        <p className="text-xs text-slate-600 mb-3.5 sm:mb-4 leading-relaxed">{description}</p>
 
         {/* Target address box */}
-        <div className="bg-slate-50 rounded-lg p-3.5 border border-slate-200 mb-4">
+        <div className="bg-slate-50 rounded-lg p-3 sm:p-3.5 border border-slate-200 mb-3.5 sm:mb-4">
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
               Endpoint Konfigurasi
@@ -125,7 +125,7 @@ export function ServiceCard({
               </span>
             ) : probeResult?.error ? (
               <span
-                className="text-rose-700 font-medium text-[11px] max-w-[200px] truncate block text-right"
+                className="text-rose-700 font-medium text-[11px] max-w-[130px] sm:max-w-[200px] truncate block text-right"
                 title={probeResult.error}
               >
                 {probeResult.error}

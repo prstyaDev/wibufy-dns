@@ -103,7 +103,7 @@ export function QuickSetupSection() {
       </div>
 
       {/* Tab Panels */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-8 shadow-xs">
         {/* Android Tab */}
         {activeTab === 'android' && (
           <div className="space-y-6">
@@ -116,7 +116,7 @@ export function QuickSetupSection() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 shrink-0">
+              <div className="flex items-center justify-between sm:justify-start gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 shrink-0">
                 <code className="text-xs sm:text-sm font-mono font-semibold text-slate-900">
                   dns.wibufy.biz.id
                 </code>
