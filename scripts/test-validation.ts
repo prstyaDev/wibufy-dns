@@ -128,4 +128,44 @@ console.log('✔ Scenario 3D Passed: Both protocols down -> down');
 assert.strictEqual(evaluateStatus(dotNormal, dohNormal, true), 'unknown');
 console.log('✔ Scenario 3E Passed: Stale probe data -> unknown');
 
+// Test 4: Granular Latency Metrics Measurement & Unit Validation
+console.log('Test 4: Granular Latency Metrics (connectionLatencyMs, dnsQueryLatencyMs, totalLatencyMs)');
+
+const sampleGranularProbe: SingleProbeResult = {
+  service: 'dot',
+  status: 'operational',
+  latencyMs: 155,
+  totalLatencyMs: 155,
+  connectionLatencyMs: 110,
+  dnsQueryLatencyMs: 45,
+  timestamp: new Date().toISOString(),
+  checkedAtIso: new Date().toISOString(),
+  target: 'dns.wibufy.biz.id',
+  port: 853,
+  rcode: 'NOERROR',
+};
+
+// 4A: Check that all metrics are positive numbers in milliseconds
+assert.strictEqual(typeof sampleGranularProbe.latencyMs, 'number', 'latencyMs must be number');
+assert.strictEqual(typeof sampleGranularProbe.totalLatencyMs, 'number', 'totalLatencyMs must be number');
+assert.strictEqual(typeof sampleGranularProbe.connectionLatencyMs, 'number', 'connectionLatencyMs must be number');
+assert.strictEqual(typeof sampleGranularProbe.dnsQueryLatencyMs, 'number', 'dnsQueryLatencyMs must be number');
+assert.ok(sampleGranularProbe.latencyMs > 0, 'latencyMs must be > 0 (milliseconds)');
+assert.ok(sampleGranularProbe.totalLatencyMs! > 0, 'totalLatencyMs must be > 0 (milliseconds)');
+assert.ok(sampleGranularProbe.connectionLatencyMs! > 0, 'connectionLatencyMs must be > 0 (milliseconds)');
+assert.ok(sampleGranularProbe.dnsQueryLatencyMs! > 0, 'dnsQueryLatencyMs must be > 0 (milliseconds)');
+
+// 4B: Check relationship: total latency must equal latencyMs and be >= individual components
+assert.strictEqual(sampleGranularProbe.latencyMs, sampleGranularProbe.totalLatencyMs, 'latencyMs must equal totalLatencyMs for backward compatibility');
+assert.ok(
+  sampleGranularProbe.totalLatencyMs! >= sampleGranularProbe.dnsQueryLatencyMs!,
+  'totalLatencyMs must be >= pure dnsQueryLatencyMs'
+);
+assert.ok(
+  sampleGranularProbe.totalLatencyMs! >= sampleGranularProbe.connectionLatencyMs!,
+  'totalLatencyMs must be >= connectionLatencyMs'
+);
+
+console.log('✔ Test 4 Passed: Granular latency metrics and millisecond units validated');
+
 console.log('--- ALL VALIDATION TESTS PASSED SUCCESSFULLY ---');

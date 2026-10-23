@@ -1,4 +1,5 @@
 import * as tls from 'node:tls';
+import * as https from 'node:https';
 import { buildDnsQuery, parseDnsResponse } from './packet';
 import {
   ServiceType,
@@ -44,6 +45,7 @@ export function sanitizeErrorMessage(err: unknown): string {
 /**
  * Executes DNS-over-TLS (DoT) probe via RFC 7858
  * Connects securely to dns.wibufy.biz.id:853 with TLS verification, sends wire query with 2-byte prefix.
+ * Separates connection setup (TCP+TLS handshake) from pure DNS wire query round-trip latency.
  */
 export async function probeDoT(): Promise<SingleProbeResult> {
   const startTime = Date.now();
@@ -53,6 +55,8 @@ export async function probeDoT(): Promise<SingleProbeResult> {
     let timer: NodeJS.Timeout | null = null;
     let socket: tls.TLSSocket | null = null;
     let resolved = false;
+    let connectionLatencyMs = 0;
+    let queryStartTime = 0;
 
     const cleanup = () => {
       if (timer) {
@@ -79,10 +83,14 @@ export async function probeDoT(): Promise<SingleProbeResult> {
 
     try {
       timer = setTimeout(() => {
+        const total = Date.now() - startTime;
         finish({
           service: 'dot',
           status: 'down',
-          latencyMs: Date.now() - startTime,
+          latencyMs: total,
+          totalLatencyMs: total,
+          connectionLatencyMs: connectionLatencyMs || total,
+          dnsQueryLatencyMs: queryStartTime > 0 ? Date.now() - queryStartTime : 0,
           timestamp,
           checkedAtIso: timestamp,
           target: TARGET_CONFIG.DOT_HOST,
@@ -112,6 +120,8 @@ export async function probeDoT(): Promise<SingleProbeResult> {
         () => {
           // Connected & TLS Handshake completed successfully
           if (!socket) return;
+          connectionLatencyMs = Math.max(1, Date.now() - startTime);
+          queryStartTime = Date.now();
           socket.write(Buffer.from(prefixedQuery));
         }
       );
@@ -127,7 +137,10 @@ export async function probeDoT(): Promise<SingleProbeResult> {
         }
 
         if (expectedLength !== null && responseBuffer.length >= 2 + expectedLength) {
-          const latency = Date.now() - startTime;
+          const endTime = Date.now();
+          const totalLatency = Math.max(1, endTime - startTime);
+          const dnsQueryLatency = queryStartTime > 0 ? Math.max(1, endTime - queryStartTime) : totalLatency;
+          const connLatency = connectionLatencyMs || Math.max(1, totalLatency - dnsQueryLatency);
           const payload = responseBuffer.subarray(2, 2 + expectedLength);
 
           try {
@@ -137,7 +150,10 @@ export async function probeDoT(): Promise<SingleProbeResult> {
               finish({
                 service: 'dot',
                 status: 'down',
-                latencyMs: latency,
+                latencyMs: totalLatency,
+                totalLatencyMs: totalLatency,
+                connectionLatencyMs: connLatency,
+                dnsQueryLatencyMs: dnsQueryLatency,
                 timestamp,
                 checkedAtIso: timestamp,
                 target: TARGET_CONFIG.DOT_HOST,
@@ -151,7 +167,10 @@ export async function probeDoT(): Promise<SingleProbeResult> {
               finish({
                 service: 'dot',
                 status: 'down',
-                latencyMs: latency,
+                latencyMs: totalLatency,
+                totalLatencyMs: totalLatency,
+                connectionLatencyMs: connLatency,
+                dnsQueryLatencyMs: dnsQueryLatency,
                 timestamp,
                 checkedAtIso: timestamp,
                 target: TARGET_CONFIG.DOT_HOST,
@@ -162,25 +181,31 @@ export async function probeDoT(): Promise<SingleProbeResult> {
               return;
             }
 
-            const isDegraded = latency >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS;
+            const isDegraded = totalLatency >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS;
 
             finish({
               service: 'dot',
               status: isDegraded ? 'degraded' : 'operational',
-              latencyMs: latency,
+              latencyMs: totalLatency,
+              totalLatencyMs: totalLatency,
+              connectionLatencyMs: connLatency,
+              dnsQueryLatencyMs: dnsQueryLatency,
               timestamp,
               checkedAtIso: timestamp,
               target: TARGET_CONFIG.DOT_HOST,
               port: TARGET_CONFIG.DOT_PORT,
               rcode: parsed.rcodeName,
               answersCount: parsed.header.ancount,
-              error: isDegraded ? `Latensi tinggi (${latency}ms >= ambang ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms)` : undefined,
+              error: isDegraded ? `Latensi tinggi (${totalLatency}ms >= ambang ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms)` : undefined,
             });
           } catch (parseErr) {
             finish({
               service: 'dot',
               status: 'down',
-              latencyMs: latency,
+              latencyMs: totalLatency,
+              totalLatencyMs: totalLatency,
+              connectionLatencyMs: connLatency,
+              dnsQueryLatencyMs: dnsQueryLatency,
               timestamp,
               checkedAtIso: timestamp,
               target: TARGET_CONFIG.DOT_HOST,
@@ -192,10 +217,14 @@ export async function probeDoT(): Promise<SingleProbeResult> {
       });
 
       socket.on('error', (err) => {
+        const total = Date.now() - startTime;
         finish({
           service: 'dot',
           status: 'down',
-          latencyMs: Date.now() - startTime,
+          latencyMs: total,
+          totalLatencyMs: total,
+          connectionLatencyMs: connectionLatencyMs || total,
+          dnsQueryLatencyMs: queryStartTime > 0 ? Date.now() - queryStartTime : 0,
           timestamp,
           checkedAtIso: timestamp,
           target: TARGET_CONFIG.DOT_HOST,
@@ -206,10 +235,14 @@ export async function probeDoT(): Promise<SingleProbeResult> {
 
       socket.on('close', (hadError) => {
         if (!resolved) {
+          const total = Date.now() - startTime;
           finish({
             service: 'dot',
             status: 'down',
-            latencyMs: Date.now() - startTime,
+            latencyMs: total,
+            totalLatencyMs: total,
+            connectionLatencyMs: connectionLatencyMs || total,
+            dnsQueryLatencyMs: queryStartTime > 0 ? Date.now() - queryStartTime : 0,
             timestamp,
             checkedAtIso: timestamp,
             target: TARGET_CONFIG.DOT_HOST,
@@ -219,10 +252,14 @@ export async function probeDoT(): Promise<SingleProbeResult> {
         }
       });
     } catch (outerErr) {
+      const total = Date.now() - startTime;
       finish({
         service: 'dot',
         status: 'down',
-        latencyMs: Date.now() - startTime,
+        latencyMs: total,
+        totalLatencyMs: total,
+        connectionLatencyMs: connectionLatencyMs || total,
+        dnsQueryLatencyMs: 0,
         timestamp,
         checkedAtIso: timestamp,
         target: TARGET_CONFIG.DOT_HOST,
@@ -235,7 +272,9 @@ export async function probeDoT(): Promise<SingleProbeResult> {
 
 /**
  * Executes DNS-over-HTTPS (DoH) probe via RFC 8484
- * Sends POST request with wire format body and application/dns-message content-type
+ * Sends POST request with wire format body and application/dns-message content-type.
+ * Measures connection setup (TCP+TLS handshake) and pure DNS query round-trip latency
+ * after reading the complete response body.
  */
 export async function probeDoH(): Promise<SingleProbeResult> {
   const startTime = Date.now();
@@ -244,109 +283,238 @@ export async function probeDoH(): Promise<SingleProbeResult> {
   const queryId = Math.floor(Math.random() * 0xffff);
   const dnsQuery = buildDnsQuery(TARGET_CONFIG.TEST_DOMAIN, queryId);
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TARGET_CONFIG.TIMEOUT_MS);
+  return new Promise<SingleProbeResult>((resolve) => {
+    let timer: NodeJS.Timeout | null = null;
+    let req: import('node:http').ClientRequest | null = null;
+    let resolved = false;
+    let connectionLatencyMs = 0;
+    let queryStartTime = 0;
 
-  try {
-    const res = await fetch(TARGET_CONFIG.DOH_URL, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/dns-message',
-        'Content-Type': 'application/dns-message',
-        'User-Agent': 'WibufyDNS-Probe/1.0 (https://dns.wibufy.biz.id)',
-      },
-      body: Buffer.from(dnsQuery),
-      signal: controller.signal,
-      cache: 'no-store',
-    });
-
-    clearTimeout(timeoutId);
-    const latency = Date.now() - startTime;
-
-    if (!res.ok) {
-      return {
-        service: 'doh',
-        status: 'down',
-        latencyMs: latency,
-        timestamp,
-        checkedAtIso: timestamp,
-        target: TARGET_CONFIG.DOH_URL,
-        port: 443,
-        error: `HTTP ${res.status} ${res.statusText}`,
-      };
-    }
-
-    const contentType = res.headers.get('content-type') || '';
-    if (!contentType.includes('application/dns-message')) {
-      return {
-        service: 'doh',
-        status: 'down',
-        latencyMs: latency,
-        timestamp,
-        checkedAtIso: timestamp,
-        target: TARGET_CONFIG.DOH_URL,
-        port: 443,
-        error: `Unexpected Content-Type: ${contentType.slice(0, 50)} (expected application/dns-message)`,
-      };
-    }
-
-    const arrayBuffer = await res.arrayBuffer();
-    const parsed = parseDnsResponse(new Uint8Array(arrayBuffer));
-
-    if (parsed.header.id !== queryId) {
-      return {
-        service: 'doh',
-        status: 'down',
-        latencyMs: latency,
-        timestamp,
-        checkedAtIso: timestamp,
-        target: TARGET_CONFIG.DOH_URL,
-        port: 443,
-        error: `Transaction ID mismatch (expected ${queryId}, got ${parsed.header.id})`,
-      };
-    }
-
-    if (!parsed.isSuccess) {
-      return {
-        service: 'doh',
-        status: 'down',
-        latencyMs: latency,
-        timestamp,
-        checkedAtIso: timestamp,
-        target: TARGET_CONFIG.DOH_URL,
-        port: 443,
-        rcode: parsed.rcodeName,
-        error: `DNS returned non-success code: ${parsed.rcodeName}`,
-      };
-    }
-
-    const isDegraded = latency >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS;
-
-    return {
-      service: 'doh',
-      status: isDegraded ? 'degraded' : 'operational',
-      latencyMs: latency,
-      timestamp,
-      checkedAtIso: timestamp,
-      target: TARGET_CONFIG.DOH_URL,
-      port: 443,
-      rcode: parsed.rcodeName,
-      answersCount: parsed.header.ancount,
-      error: isDegraded ? `Latensi tinggi (${latency}ms >= ambang ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms)` : undefined,
+    const cleanup = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (req) {
+        try {
+          req.removeAllListeners();
+          req.destroy();
+        } catch {
+          // ignore
+        }
+        req = null;
+      }
     };
-  } catch (err) {
-    clearTimeout(timeoutId);
-    return {
-      service: 'doh',
-      status: 'down',
-      latencyMs: Date.now() - startTime,
-      timestamp,
-      checkedAtIso: timestamp,
-      target: TARGET_CONFIG.DOH_URL,
-      port: 443,
-      error: sanitizeErrorMessage(err),
+
+    const finish = (result: SingleProbeResult) => {
+      if (resolved) return;
+      resolved = true;
+      cleanup();
+      resolve(result);
     };
-  }
+
+    try {
+      timer = setTimeout(() => {
+        const total = Date.now() - startTime;
+        finish({
+          service: 'doh',
+          status: 'down',
+          latencyMs: total,
+          totalLatencyMs: total,
+          connectionLatencyMs: connectionLatencyMs || total,
+          dnsQueryLatencyMs: queryStartTime > 0 ? Date.now() - queryStartTime : 0,
+          timestamp,
+          checkedAtIso: timestamp,
+          target: TARGET_CONFIG.DOH_URL,
+          port: 443,
+          error: `HTTP/TLS connection or query timed out (${TARGET_CONFIG.TIMEOUT_MS}ms)`,
+        });
+      }, TARGET_CONFIG.TIMEOUT_MS);
+
+      const dohUrl = new URL(TARGET_CONFIG.DOH_URL);
+
+      req = https.request(
+        {
+          hostname: dohUrl.hostname,
+          port: dohUrl.port ? Number(dohUrl.port) : 443,
+          path: `${dohUrl.pathname}${dohUrl.search}`,
+          method: 'POST',
+          headers: {
+            'Accept': 'application/dns-message',
+            'Content-Type': 'application/dns-message',
+            'Content-Length': dnsQuery.length,
+            'User-Agent': 'WibufyDNS-Probe/1.0 (https://dns.wibufy.biz.id)',
+          },
+          minVersion: 'TLSv1.2',
+          servername: dohUrl.hostname,
+          rejectUnauthorized: true,
+        },
+        (res) => {
+          const chunks: Buffer[] = [];
+
+          res.on('data', (chunk: Buffer) => {
+            chunks.push(chunk);
+          });
+
+          res.on('end', () => {
+            const endTime = Date.now();
+            const totalLatency = Math.max(1, endTime - startTime);
+            const dnsQueryLatency = queryStartTime > 0 ? Math.max(1, endTime - queryStartTime) : totalLatency;
+            const connLatency = connectionLatencyMs || Math.max(1, totalLatency - dnsQueryLatency);
+
+            if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+              finish({
+                service: 'doh',
+                status: 'down',
+                latencyMs: totalLatency,
+                totalLatencyMs: totalLatency,
+                connectionLatencyMs: connLatency,
+                dnsQueryLatencyMs: dnsQueryLatency,
+                timestamp,
+                checkedAtIso: timestamp,
+                target: TARGET_CONFIG.DOH_URL,
+                port: 443,
+                error: `HTTP ${res.statusCode} ${res.statusMessage || ''}`.trim(),
+              });
+              return;
+            }
+
+            const contentType = (res.headers['content-type'] as string) || '';
+            if (!contentType.includes('application/dns-message')) {
+              finish({
+                service: 'doh',
+                status: 'down',
+                latencyMs: totalLatency,
+                totalLatencyMs: totalLatency,
+                connectionLatencyMs: connLatency,
+                dnsQueryLatencyMs: dnsQueryLatency,
+                timestamp,
+                checkedAtIso: timestamp,
+                target: TARGET_CONFIG.DOH_URL,
+                port: 443,
+                error: `Unexpected Content-Type: ${contentType.slice(0, 50)} (expected application/dns-message)`,
+              });
+              return;
+            }
+
+            const body = Buffer.concat(chunks);
+            try {
+              const parsed = parseDnsResponse(new Uint8Array(body));
+
+              if (parsed.header.id !== queryId) {
+                finish({
+                  service: 'doh',
+                  status: 'down',
+                  latencyMs: totalLatency,
+                  totalLatencyMs: totalLatency,
+                  connectionLatencyMs: connLatency,
+                  dnsQueryLatencyMs: dnsQueryLatency,
+                  timestamp,
+                  checkedAtIso: timestamp,
+                  target: TARGET_CONFIG.DOH_URL,
+                  port: 443,
+                  error: `Transaction ID mismatch (expected ${queryId}, got ${parsed.header.id})`,
+                });
+                return;
+              }
+
+              if (!parsed.isSuccess) {
+                finish({
+                  service: 'doh',
+                  status: 'down',
+                  latencyMs: totalLatency,
+                  totalLatencyMs: totalLatency,
+                  connectionLatencyMs: connLatency,
+                  dnsQueryLatencyMs: dnsQueryLatency,
+                  timestamp,
+                  checkedAtIso: timestamp,
+                  target: TARGET_CONFIG.DOH_URL,
+                  port: 443,
+                  rcode: parsed.rcodeName,
+                  error: `DNS returned non-success code: ${parsed.rcodeName}`,
+                });
+                return;
+              }
+
+              const isDegraded = totalLatency >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS;
+
+              finish({
+                service: 'doh',
+                status: isDegraded ? 'degraded' : 'operational',
+                latencyMs: totalLatency,
+                totalLatencyMs: totalLatency,
+                connectionLatencyMs: connLatency,
+                dnsQueryLatencyMs: dnsQueryLatency,
+                timestamp,
+                checkedAtIso: timestamp,
+                target: TARGET_CONFIG.DOH_URL,
+                port: 443,
+                rcode: parsed.rcodeName,
+                answersCount: parsed.header.ancount,
+                error: isDegraded ? `Latensi tinggi (${totalLatency}ms >= ambang ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms)` : undefined,
+              });
+            } catch (parseErr) {
+              finish({
+                service: 'doh',
+                status: 'down',
+                latencyMs: totalLatency,
+                totalLatencyMs: totalLatency,
+                connectionLatencyMs: connLatency,
+                dnsQueryLatencyMs: dnsQueryLatency,
+                timestamp,
+                checkedAtIso: timestamp,
+                target: TARGET_CONFIG.DOH_URL,
+                port: 443,
+                error: `Invalid DNS response payload: ${sanitizeErrorMessage(parseErr)}`,
+              });
+            }
+          });
+        }
+      );
+
+      req.on('socket', (socket) => {
+        socket.on('secureConnect', () => {
+          connectionLatencyMs = Math.max(1, Date.now() - startTime);
+          queryStartTime = Date.now();
+        });
+      });
+
+      req.on('error', (err) => {
+        const total = Date.now() - startTime;
+        finish({
+          service: 'doh',
+          status: 'down',
+          latencyMs: total,
+          totalLatencyMs: total,
+          connectionLatencyMs: connectionLatencyMs || total,
+          dnsQueryLatencyMs: queryStartTime > 0 ? Date.now() - queryStartTime : 0,
+          timestamp,
+          checkedAtIso: timestamp,
+          target: TARGET_CONFIG.DOH_URL,
+          port: 443,
+          error: sanitizeErrorMessage(err),
+        });
+      });
+
+      req.write(Buffer.from(dnsQuery));
+      req.end();
+    } catch (err) {
+      const total = Date.now() - startTime;
+      finish({
+        service: 'doh',
+        status: 'down',
+        latencyMs: total,
+        totalLatencyMs: total,
+        connectionLatencyMs: connectionLatencyMs || total,
+        dnsQueryLatencyMs: 0,
+        timestamp,
+        checkedAtIso: timestamp,
+        target: TARGET_CONFIG.DOH_URL,
+        port: 443,
+        error: sanitizeErrorMessage(err),
+      });
+    }
+  });
 }
 
 /**

@@ -100,8 +100,13 @@ export function RecentProbesHistory() {
                     <td className="py-2.5 px-4">
                       <StatusIndicator status={log.status} size="sm" />
                     </td>
-                    <td className="py-2.5 px-4 font-mono tabular-nums text-right font-medium text-slate-900">
-                      {log.latencyMs} ms
+                    <td className="py-2.5 px-4 font-mono tabular-nums text-right font-medium text-slate-900 whitespace-nowrap">
+                      <div>{log.latencyMs} ms</div>
+                      {log.dnsQueryLatencyMs !== undefined && (
+                        <div className="text-[10px] text-slate-400 font-normal">
+                          DNS: {log.dnsQueryLatencyMs}ms · TLS: {log.connectionLatencyMs ?? '—'}ms
+                        </div>
+                      )}
                     </td>
                     <td className="py-2.5 px-4 font-mono text-[11px]">
                       {log.error ? (

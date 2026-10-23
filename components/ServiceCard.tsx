@@ -116,6 +116,18 @@ export function ServiceCard({
           </div>
         </div>
 
+        {hasResult && probeResult?.dnsQueryLatencyMs !== undefined && (
+          <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono">
+            <span>Rincian Waktu</span>
+            <span>
+              Kueri: <span className="font-semibold text-slate-800">{probeResult.dnsQueryLatencyMs}ms</span>
+              {probeResult.connectionLatencyMs !== undefined && (
+                <> · TLS: <span className="font-semibold text-slate-800">{probeResult.connectionLatencyMs}ms</span></>
+              )}
+            </span>
+          </div>
+        )}
+
         <div className="flex items-center justify-between text-slate-600">
           <span className="text-slate-500">Hasil Query DNS</span>
           <span className="font-mono text-xs">

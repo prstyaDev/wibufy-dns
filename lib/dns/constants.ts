@@ -5,6 +5,9 @@ export interface SingleProbeResult {
   service: ServiceType;
   status: 'operational' | 'degraded' | 'down';
   latencyMs: number;
+  totalLatencyMs?: number;
+  connectionLatencyMs?: number;
+  dnsQueryLatencyMs?: number;
   timestamp: string;
   checkedAtIso: string;
   target: string;

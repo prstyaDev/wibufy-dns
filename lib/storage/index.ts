@@ -6,6 +6,9 @@ export interface ProbeLogEntry {
   service: 'dot' | 'doh';
   status: 'operational' | 'degraded' | 'down';
   latencyMs: number;
+  totalLatencyMs?: number;
+  connectionLatencyMs?: number;
+  dnsQueryLatencyMs?: number;
   checkedAt: string;
   error?: string;
   rcode?: string;
@@ -132,6 +135,17 @@ async function ensureTables(db: Pool): Promise<void> {
       INSERT INTO public.dns_rate_limits (id, last_triggered_at)
       VALUES ('global_probe', '1970-01-01 00:00:00+00')
       ON CONFLICT (id) DO NOTHING;
+
+      -- Non-destructive addition of granular latency metrics
+      ALTER TABLE public.dns_status_summary
+        ADD COLUMN IF NOT EXISTS dot_query_latency INTEGER,
+        ADD COLUMN IF NOT EXISTS dot_connect_latency INTEGER,
+        ADD COLUMN IF NOT EXISTS doh_query_latency INTEGER,
+        ADD COLUMN IF NOT EXISTS doh_connect_latency INTEGER;
+
+      ALTER TABLE public.dns_probe_logs
+        ADD COLUMN IF NOT EXISTS dns_query_latency_ms INTEGER,
+        ADD COLUMN IF NOT EXISTS connection_latency_ms INTEGER;
     `);
   } catch (err) {
     console.warn('[Supabase Storage] Table initialization check warning:', err);
@@ -178,71 +192,151 @@ export async function saveProbeSummary(
   try {
     await ensureTables(db);
 
-    // 1. Upsert latest summary into dns_status_summary
-    await db.query(
-      `
-      INSERT INTO public.dns_status_summary (
-        id, status, overall_text,
-        dot_status, dot_latency, dot_error, dot_rcode,
-        doh_status, doh_latency, doh_error, doh_rcode,
-        updated_at
-      ) VALUES (
-        1, $1, $2,
-        $3, $4, $5, $6,
-        $7, $8, $9, $10,
-        $11
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        status = EXCLUDED.status,
-        overall_text = EXCLUDED.overall_text,
-        dot_status = EXCLUDED.dot_status,
-        dot_latency = EXCLUDED.dot_latency,
-        dot_error = EXCLUDED.dot_error,
-        dot_rcode = EXCLUDED.dot_rcode,
-        doh_status = EXCLUDED.doh_status,
-        doh_latency = EXCLUDED.doh_latency,
-        doh_error = EXCLUDED.doh_error,
-        doh_rcode = EXCLUDED.doh_rcode,
-        updated_at = EXCLUDED.updated_at;
-    `,
-      [
-        summary.status,
-        summary.overallText,
-        summary.dot.status,
-        summary.dot.latencyMs,
-        summary.dot.error || null,
-        summary.dot.rcode || null,
-        summary.doh.status,
-        summary.doh.latencyMs,
-        summary.doh.error || null,
-        summary.doh.rcode || null,
-        summary.lastChecked || new Date().toISOString(),
-      ]
-    );
+    try {
+      // 1. Upsert latest summary with granular metrics into dns_status_summary
+      await db.query(
+        `
+        INSERT INTO public.dns_status_summary (
+          id, status, overall_text,
+          dot_status, dot_latency, dot_query_latency, dot_connect_latency, dot_error, dot_rcode,
+          doh_status, doh_latency, doh_query_latency, doh_connect_latency, doh_error, doh_rcode,
+          updated_at
+        ) VALUES (
+          1, $1, $2,
+          $3, $4, $5, $6, $7, $8,
+          $9, $10, $11, $12, $13, $14,
+          $15
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          status = EXCLUDED.status,
+          overall_text = EXCLUDED.overall_text,
+          dot_status = EXCLUDED.dot_status,
+          dot_latency = EXCLUDED.dot_latency,
+          dot_query_latency = EXCLUDED.dot_query_latency,
+          dot_connect_latency = EXCLUDED.dot_connect_latency,
+          dot_error = EXCLUDED.dot_error,
+          dot_rcode = EXCLUDED.dot_rcode,
+          doh_status = EXCLUDED.doh_status,
+          doh_latency = EXCLUDED.doh_latency,
+          doh_query_latency = EXCLUDED.doh_query_latency,
+          doh_connect_latency = EXCLUDED.doh_connect_latency,
+          doh_error = EXCLUDED.doh_error,
+          doh_rcode = EXCLUDED.doh_rcode,
+          updated_at = EXCLUDED.updated_at;
+      `,
+        [
+          summary.status,
+          summary.overallText,
+          summary.dot.status,
+          summary.dot.latencyMs,
+          summary.dot.dnsQueryLatencyMs ?? null,
+          summary.dot.connectionLatencyMs ?? null,
+          summary.dot.error || null,
+          summary.dot.rcode || null,
+          summary.doh.status,
+          summary.doh.latencyMs,
+          summary.doh.dnsQueryLatencyMs ?? null,
+          summary.doh.connectionLatencyMs ?? null,
+          summary.doh.error || null,
+          summary.doh.rcode || null,
+          summary.lastChecked || new Date().toISOString(),
+        ]
+      );
 
-    // 2. Insert historical probe logs
-    await db.query(
-      `
-      INSERT INTO public.dns_probe_logs (service, status, latency_ms, error_msg, rcode, checked_at)
-      VALUES
-        ($1, $2, $3, $4, $5, $6),
-        ($7, $8, $9, $10, $11, $12);
-    `,
-      [
-        'dot',
-        summary.dot.status,
-        summary.dot.latencyMs,
-        summary.dot.error || null,
-        summary.dot.rcode || null,
-        summary.dot.checkedAtIso,
-        'doh',
-        summary.doh.status,
-        summary.doh.latencyMs,
-        summary.doh.error || null,
-        summary.doh.rcode || null,
-        summary.doh.checkedAtIso,
-      ]
-    );
+      // 2. Insert historical probe logs with granular metrics
+      await db.query(
+        `
+        INSERT INTO public.dns_probe_logs (service, status, latency_ms, dns_query_latency_ms, connection_latency_ms, error_msg, rcode, checked_at)
+        VALUES
+          ($1, $2, $3, $4, $5, $6, $7, $8),
+          ($9, $10, $11, $12, $13, $14, $15, $16);
+      `,
+        [
+          'dot',
+          summary.dot.status,
+          summary.dot.latencyMs,
+          summary.dot.dnsQueryLatencyMs ?? null,
+          summary.dot.connectionLatencyMs ?? null,
+          summary.dot.error || null,
+          summary.dot.rcode || null,
+          summary.dot.checkedAtIso,
+          'doh',
+          summary.doh.status,
+          summary.doh.latencyMs,
+          summary.doh.dnsQueryLatencyMs ?? null,
+          summary.doh.connectionLatencyMs ?? null,
+          summary.doh.error || null,
+          summary.doh.rcode || null,
+          summary.doh.checkedAtIso,
+        ]
+      );
+    } catch (insertErr) {
+      console.warn('[Supabase Storage] Granular insert fallback triggered:', insertErr);
+      // Fallback for pre-migration table schema
+      await db.query(
+        `
+        INSERT INTO public.dns_status_summary (
+          id, status, overall_text,
+          dot_status, dot_latency, dot_error, dot_rcode,
+          doh_status, doh_latency, doh_error, doh_rcode,
+          updated_at
+        ) VALUES (
+          1, $1, $2,
+          $3, $4, $5, $6,
+          $7, $8, $9, $10,
+          $11
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          status = EXCLUDED.status,
+          overall_text = EXCLUDED.overall_text,
+          dot_status = EXCLUDED.dot_status,
+          dot_latency = EXCLUDED.dot_latency,
+          dot_error = EXCLUDED.dot_error,
+          dot_rcode = EXCLUDED.dot_rcode,
+          doh_status = EXCLUDED.doh_status,
+          doh_latency = EXCLUDED.doh_latency,
+          doh_error = EXCLUDED.doh_error,
+          doh_rcode = EXCLUDED.doh_rcode,
+          updated_at = EXCLUDED.updated_at;
+      `,
+        [
+          summary.status,
+          summary.overallText,
+          summary.dot.status,
+          summary.dot.latencyMs,
+          summary.dot.error || null,
+          summary.dot.rcode || null,
+          summary.doh.status,
+          summary.doh.latencyMs,
+          summary.doh.error || null,
+          summary.doh.rcode || null,
+          summary.lastChecked || new Date().toISOString(),
+        ]
+      );
+
+      await db.query(
+        `
+        INSERT INTO public.dns_probe_logs (service, status, latency_ms, error_msg, rcode, checked_at)
+        VALUES
+          ($1, $2, $3, $4, $5, $6),
+          ($7, $8, $9, $10, $11, $12);
+      `,
+        [
+          'dot',
+          summary.dot.status,
+          summary.dot.latencyMs,
+          summary.dot.error || null,
+          summary.dot.rcode || null,
+          summary.dot.checkedAtIso,
+          'doh',
+          summary.doh.status,
+          summary.doh.latencyMs,
+          summary.doh.error || null,
+          summary.doh.rcode || null,
+          summary.doh.checkedAtIso,
+        ]
+      );
+    }
 
     // 3. Actively enforce 30-day retention policy
     await cleanOldProbeLogs();
@@ -311,6 +405,9 @@ export async function getLatestStatus(): Promise<SystemStatusSummary> {
       service: 'dot',
       status: row.dot_status,
       latencyMs: row.dot_latency,
+      totalLatencyMs: row.dot_latency,
+      dnsQueryLatencyMs: row.dot_query_latency != null ? Number(row.dot_query_latency) : undefined,
+      connectionLatencyMs: row.dot_connect_latency != null ? Number(row.dot_connect_latency) : undefined,
       timestamp: lastCheckedDate.toISOString(),
       checkedAtIso: lastCheckedDate.toISOString(),
       target: TARGET_CONFIG.DOT_HOST,
@@ -323,6 +420,9 @@ export async function getLatestStatus(): Promise<SystemStatusSummary> {
       service: 'doh',
       status: row.doh_status,
       latencyMs: row.doh_latency,
+      totalLatencyMs: row.doh_latency,
+      dnsQueryLatencyMs: row.doh_query_latency != null ? Number(row.doh_query_latency) : undefined,
+      connectionLatencyMs: row.doh_connect_latency != null ? Number(row.doh_connect_latency) : undefined,
       timestamp: lastCheckedDate.toISOString(),
       checkedAtIso: lastCheckedDate.toISOString(),
       target: TARGET_CONFIG.DOH_URL,
@@ -364,19 +464,37 @@ export async function getProbeHistory(limit: number = 20): Promise<ProbeLogEntry
   if (!db) return [];
 
   try {
-    const res = await db.query(
-      `SELECT id, service, status, latency_ms as "latencyMs", error_msg as "error", rcode, checked_at as "checkedAt"
-       FROM public.dns_probe_logs
-       ORDER BY checked_at DESC
-       LIMIT $1;`,
-      [limit]
-    );
+    let res;
+    try {
+      res = await db.query(
+        `SELECT id, service, status, latency_ms as "latencyMs",
+                dns_query_latency_ms as "dnsQueryLatencyMs",
+                connection_latency_ms as "connectionLatencyMs",
+                error_msg as "error", rcode, checked_at as "checkedAt"
+         FROM public.dns_probe_logs
+         ORDER BY checked_at DESC
+         LIMIT $1;`,
+        [limit]
+      );
+    } catch {
+      // Fallback for pre-migration table without granular columns
+      res = await db.query(
+        `SELECT id, service, status, latency_ms as "latencyMs", error_msg as "error", rcode, checked_at as "checkedAt"
+         FROM public.dns_probe_logs
+         ORDER BY checked_at DESC
+         LIMIT $1;`,
+        [limit]
+      );
+    }
 
     return res.rows.map((r) => ({
       id: r.id,
       service: r.service,
       status: r.status,
       latencyMs: r.latencyMs,
+      totalLatencyMs: r.latencyMs,
+      dnsQueryLatencyMs: r.dnsQueryLatencyMs != null ? Number(r.dnsQueryLatencyMs) : undefined,
+      connectionLatencyMs: r.connectionLatencyMs != null ? Number(r.connectionLatencyMs) : undefined,
       checkedAt: new Date(r.checkedAt).toISOString(),
       error: r.error || undefined,
       rcode: r.rcode || undefined,

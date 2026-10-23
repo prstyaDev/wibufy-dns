@@ -88,6 +88,9 @@ export async function GET(req: NextRequest) {
           ? {
               status: summary.dot.status,
               latencyMs: summary.dot.latencyMs,
+              totalLatencyMs: summary.dot.totalLatencyMs ?? summary.dot.latencyMs,
+              connectionLatencyMs: summary.dot.connectionLatencyMs,
+              dnsQueryLatencyMs: summary.dot.dnsQueryLatencyMs,
               rcode: summary.dot.rcode,
               error: summary.dot.error,
             }
@@ -96,6 +99,9 @@ export async function GET(req: NextRequest) {
           ? {
               status: summary.doh.status,
               latencyMs: summary.doh.latencyMs,
+              totalLatencyMs: summary.doh.totalLatencyMs ?? summary.doh.latencyMs,
+              connectionLatencyMs: summary.doh.connectionLatencyMs,
+              dnsQueryLatencyMs: summary.doh.dnsQueryLatencyMs,
               rcode: summary.doh.rcode,
               error: summary.doh.error,
             }

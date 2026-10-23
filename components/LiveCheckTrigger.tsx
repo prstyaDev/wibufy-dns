@@ -135,10 +135,12 @@ export function LiveCheckTrigger() {
               <span className="text-base sm:text-lg font-bold text-slate-900">
                 {dotLatency !== undefined ? `${dotLatency}` : '—'}
               </span>
-              <span className="text-xs text-slate-500">ms</span>
+              <span className="text-xs text-slate-500">ms total</span>
             </div>
-            <span className="text-[10px] text-slate-400 block truncate">
-              Ambang: &lt; {TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms
+            <span className="text-[10px] text-slate-400 block truncate font-mono">
+              {summary?.dot?.dnsQueryLatencyMs !== undefined
+                ? `Kueri DNS: ${summary.dot.dnsQueryLatencyMs}ms (TLS: ${summary.dot.connectionLatencyMs ?? '—'}ms)`
+                : `Ambang: < ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms`}
             </span>
           </div>
 
@@ -149,10 +151,12 @@ export function LiveCheckTrigger() {
               <span className="text-base sm:text-lg font-bold text-slate-900">
                 {dohLatency !== undefined ? `${dohLatency}` : '—'}
               </span>
-              <span className="text-xs text-slate-500">ms</span>
+              <span className="text-xs text-slate-500">ms total</span>
             </div>
-            <span className="text-[10px] text-slate-400 block truncate">
-              Ambang: &lt; {TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms
+            <span className="text-[10px] text-slate-400 block truncate font-mono">
+              {summary?.doh?.dnsQueryLatencyMs !== undefined
+                ? `Kueri DNS: ${summary.doh.dnsQueryLatencyMs}ms (TLS: ${summary.doh.connectionLatencyMs ?? '—'}ms)`
+                : `Ambang: < ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms`}
             </span>
           </div>
 
