@@ -1,0 +1,50 @@
+# ==============================================================================
+# WIBUFYDNS (prstya.web.id) — Environment Variables
+# ==============================================================================
+# Salin file ini menjadi .env.local untuk pengujian lokal:
+#   cp .env.example .env.local
+#
+# KEAMANAN: Jangan commit secret asli atau password database ke repositori!
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. DATABASE UTAMA: SUPABASE POSTGRESQL (SERVER-SIDE ONLY)
+# ------------------------------------------------------------------------------
+# Connection string ke database Supabase PostgreSQL.
+# Gunakan "Transaction Pooler (Port 6543)" untuk runtime serverless di Vercel:
+# Dashboard Supabase > Project Settings > Database > Connection String > URI (Mode: Transaction)
+# Format: postgres://postgres.[project-ref]:[db-password]@aws-0-[region].pooler.supabase.com:6543/postgres?sslmode=require
+DATABASE_URL="postgresql://postgres.bmjtqnclzruurepqchya:Noobs312888@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres"
+
+# Alternatif nama variabel server-side (didukung):
+# SUPABASE_DATABASE_URL="postgresql://postgres.bmjtqnclzruurepqchya:Noobs312888@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres"
+
+# Sertifikat CA kustom (opsional, jika memerlukan certificate pinning tertentu):
+# SUPABASE_SSL_CA="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+
+# ------------------------------------------------------------------------------
+# 2. SUPABASE PUBLIC ACCESS (CLIENT-SIDE, OPTIONAL)
+# ------------------------------------------------------------------------------
+# Hanya digunakan jika aplikasi client memerlukan akses langsung via Supabase Client SDK.
+# Ditemukan di: Supabase Dashboard > Project Settings > API
+NEXT_PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="your-anon-publishable-key-here"
+
+# ------------------------------------------------------------------------------
+# 3. VERIFICATION CRON SECRET (SERVER-SIDE ONLY)
+# ------------------------------------------------------------------------------
+# Token rahasia acak untuk melindungi endpoint cron /api/cron/check-dns.
+# Vercel Cron secara otomatis menyertakan header 'x-vercel-cron: 1', dan Anda juga dapat
+# memicu pengujian eksternal melalui header 'Authorization: Bearer <CRON_SECRET>'.
+CRON_SECRET="bcc1e38563f61cb8b06407044e3c4a24b84a70e51d7ca40f4e52a3d1bb979cd3"
+
+# ------------------------------------------------------------------------------
+# 4. APP URL
+# ------------------------------------------------------------------------------
+NEXT_PUBLIC_APP_URL="https://wibufy-dns.vercel.app/"
+APP_URL="https://wibufy-dns.vercel.app/"
+
+# ------------------------------------------------------------------------------
+# 5. GEMINI API KEY (Optional, server-side only)
+# ------------------------------------------------------------------------------
+GEMINI_API_KEY=""

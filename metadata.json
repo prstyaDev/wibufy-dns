@@ -1,0 +1,6 @@
+{
+  "name": "WibufyDNS Status & Documentation",
+  "description": "Public status monitoring, documentation, and changelog for WibufyDNS (DoT & DoH) powered by prstyaDev.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
