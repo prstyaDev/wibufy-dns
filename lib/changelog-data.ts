@@ -27,6 +27,22 @@ export const IMPACT_LABELS: Record<string, string> = {
 
 export const CHANGELOG_ITEMS: ChangelogItem[] = [
   {
+    id: 'ch-008',
+    date: '2026-10-24',
+    title: 'Pembaruan Aturan Filter & Penyaringan Domain AdGuard Home',
+    category: 'Pembaruan',
+    impact: 'none',
+    summary:
+      'Penyelarasan berkala aturan penyaringan domain pada backend AdGuard Home untuk memperkuat pemblokiran iklan dan tracker analitik, sekaligus meminimalkan risiko false positive pada layanan esensial dan tautan merchant.',
+    details: [
+      'Konsolidasi dan sinkronisasi blocklist proteksi utama (iklan invasif, telemetri pihak ketiga, serta domain malware/phishing).',
+      'Pembersihan aturan dan penambahan pengecualian (allowlist) untuk mengatasi false positive pada tautan redirect e-commerce, marketplace, dan perbankan digital.',
+      'Optimasi pemrosesan aturan penolakan cepat (fast-reject null sinkhole 0.0.0.0 / ::) guna memangkas latensi query pada engine AdGuard Home.',
+      'Pembersihan aturan tumpang tindih untuk efisiensi alokasi memori runtime resolver.',
+    ],
+    note: 'Pembaruan filter ini diterapkan langsung pada instance AdGuard Home tanpa menimbulkan downtime koneksi pada endpoint DoT maupun DoH.',
+  },
+  {
     id: 'ch-007',
     date: '2026-10-23',
     title: 'Peningkatan Akurasi Monitoring Latensi DNS',
@@ -135,26 +151,27 @@ export const CHANGELOG_ITEMS: ChangelogItem[] = [
 export const IMPROVEMENT_PLANS: ImprovementPlanItem[] = [
   {
     id: 'plan-01',
-    title: 'Evaluasi Upstream',
-    summary: 'Meninjau keandalan dan waktu respons resolver.',
+    title: 'Distribusi Multi-Upstream & Smart Fallback',
+    summary: 'Mengevaluasi konfigurasi parallel query ke upstream berlatensi terendah dengan failover otomatis demi redundansi maksimal.',
     category: 'Resolver & Konektivitas',
   },
   {
     id: 'plan-02',
-    title: 'Penyempurnaan Monitoring',
-    summary: 'Memperjelas status layanan, waktu pemeriksaan, dan penanganan data kedaluwarsa.',
-    category: 'Pemantauan & Audit',
+    title: 'Profil Terenkripsi Apple (.mobileconfig)',
+    summary: 'Menyediakan profil konfigurasi bertanda tangan digital (signed profile) untuk instalasi DoH/DoT terenkripsi sekali klik pada iOS dan macOS.',
+    category: 'Integrasi Klien',
   },
   {
     id: 'plan-03',
-    title: 'Evaluasi Filter',
-    summary: 'Meninjau efektivitas pemblokiran dan potensi false positive.',
+    title: 'Automasi Validasi Filter & Whitelist',
+    summary: 'Membangun pipeline audit berkala untuk mendeteksi dan mencegah false positive secara proaktif pada domain esensial dan portal publik.',
     category: 'Penyaringan Domain',
   },
   {
     id: 'plan-04',
-    title: 'Peningkatan Dokumentasi',
-    summary: 'Memperjelas panduan konfigurasi untuk perangkat yang didukung.',
-    category: 'Dokumentasi Panduan',
+    title: 'Eksplorasi DNS-over-QUIC (DoQ)',
+    summary: 'Menguji implementasi DNS-over-QUIC (RFC 9250 port 853) untuk koneksi seluler tanpa hambatan head-of-line blocking.',
+    category: 'Riset Protokol',
   },
 ];
+
