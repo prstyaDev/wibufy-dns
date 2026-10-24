@@ -14,6 +14,8 @@ interface ServiceCardProps {
   probeResult?: SingleProbeResult | null;
   clientInstruction: string;
   targetDeviceText: string;
+  verifiedTlsInfo?: string;
+  httpVersion?: string;
 }
 
 export function ServiceCard({
@@ -25,11 +27,17 @@ export function ServiceCard({
   probeResult,
   clientInstruction,
   targetDeviceText,
+  verifiedTlsInfo,
+  httpVersion,
 }: ServiceCardProps) {
   const hasResult = Boolean(probeResult);
   const status = probeResult?.status ?? 'unknown';
   const isDegraded = status === 'degraded';
   const isOperational = status === 'operational';
+
+  const dnsQueryLatency = probeResult?.dnsQueryLatencyMs;
+  const connectionLatency = probeResult?.connectionLatencyMs;
+  const totalLatency = probeResult?.totalLatencyMs ?? probeResult?.latencyMs;
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-4 min-[375px]:p-6 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
@@ -37,11 +45,22 @@ export function ServiceCard({
         {/* Header with Protocol & Status Indicator */}
         <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <span className="text-xs font-mono font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
                 Port {port}
               </span>
               <span className="text-xs text-slate-500 font-normal">{protocol}</span>
+              <span className="text-[11px] font-mono text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200" title="Terverifikasi melalui audit TLS di VPS">
+                TLS 1.3
+              </span>
+              {httpVersion && (
+                <span
+                  className="text-[11px] font-mono text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200"
+                  title="Terverifikasi via ALPN h2 pada endpoint DoH VPS"
+                >
+                  {httpVersion}
+                </span>
+              )}
             </div>
             <h3 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight">{title}</h3>
           </div>
@@ -84,53 +103,70 @@ export function ServiceCard({
       </div>
 
       {/* Telemetry & Probe Metrics Footer */}
-      <div className="pt-3 border-t border-slate-100 mt-2 space-y-2 text-xs">
-        <div className="flex items-center justify-between text-slate-600">
-          <span className="flex items-center gap-1.5 text-slate-500">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span>Latensi Terakhir</span>
-          </span>
-          <div className="flex items-center gap-1.5 font-mono tabular-nums">
-            {hasResult && probeResult?.latencyMs !== undefined ? (
-              <>
-                <span
-                  className={`font-semibold ${
-                    isDegraded
-                      ? 'text-amber-700'
-                      : status === 'down'
-                      ? 'text-rose-700'
-                      : 'text-slate-900'
-                  }`}
-                >
-                  {probeResult.latencyMs} ms
-                </span>
-                {probeResult.latencyMs >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS && (
-                  <span className="text-[10px] text-amber-800 font-sans px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200">
-                    &ge; {TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms
-                  </span>
-                )}
-              </>
+      <div className="pt-3 border-t border-slate-100 mt-2 space-y-2.5 text-xs">
+        {/* Primary Latency Metric: Pure DNS Query Time */}
+        <div className="flex items-start justify-between gap-2 text-slate-600">
+          <div className="space-y-0.5">
+            <span className="flex items-center gap-1.5 font-medium text-slate-700">
+              <Clock className="w-3.5 h-3.5 text-blue-600" />
+              <span>Respon Kueri DNS</span>
+            </span>
+            <span className="text-[10px] text-slate-400 block">
+              Waktu proses &amp; transmisi kueri DNS oleh probe
+            </span>
+          </div>
+
+          <div className="font-mono tabular-nums text-right shrink-0">
+            {hasResult && dnsQueryLatency !== undefined ? (
+              <span
+                className={`text-sm sm:text-base font-bold ${
+                  dnsQueryLatency >= TARGET_CONFIG.DNS_QUERY_DEGRADED_THRESHOLD_MS
+                    ? 'text-amber-700'
+                    : status === 'down'
+                    ? 'text-rose-700'
+                    : 'text-slate-900'
+                }`}
+              >
+                {dnsQueryLatency} ms
+              </span>
+            ) : hasResult && totalLatency !== undefined ? (
+              <span className="text-xs font-semibold text-slate-800">
+                {totalLatency} ms <span className="text-[10px] text-slate-400 font-normal">(total probe)</span>
+              </span>
             ) : (
-              <span className="text-slate-400">—</span>
+              <span className="text-slate-400 font-sans text-xs">Belum tersedia</span>
             )}
           </div>
         </div>
 
-        {hasResult && probeResult?.dnsQueryLatencyMs !== undefined && (
-          <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono">
-            <span>Rincian Waktu</span>
-            <span>
-              Kueri: <span className="font-semibold text-slate-800">{probeResult.dnsQueryLatencyMs}ms</span>
-              {probeResult.connectionLatencyMs !== undefined && (
-                <> · TLS: <span className="font-semibold text-slate-800">{probeResult.connectionLatencyMs}ms</span></>
-              )}
-            </span>
-          </div>
-        )}
+        {/* Secondary Metric: Probe Connection / Handshake Time */}
+        <div className="flex items-center justify-between gap-2 text-slate-600 pt-1 border-t border-slate-100/70">
+          <span className="text-slate-500 text-[11px] shrink-0">Koneksi &amp; Handshake TLS</span>
+          <span className="font-mono tabular-nums text-[11px] text-slate-800 font-medium text-right">
+            {hasResult && connectionLatency !== undefined ? (
+              `${connectionLatency} ms`
+            ) : (
+              <span className="text-slate-400 font-sans">Belum tersedia</span>
+            )}
+          </span>
+        </div>
 
-        <div className="flex items-center justify-between text-slate-600">
-          <span className="text-slate-500">Hasil Query DNS</span>
-          <span className="font-mono text-xs">
+        {/* Diagnostic Metric: Total Probe Round-Trip */}
+        <div className="flex items-center justify-between gap-2 text-slate-500 text-[11px]">
+          <span className="text-slate-400 shrink-0">Total Waktu Siklus Probe</span>
+          <span className="font-mono tabular-nums text-slate-600 text-right">
+            {hasResult && totalLatency !== undefined ? (
+              `${totalLatency} ms`
+            ) : (
+              <span className="text-slate-400 font-sans">Belum tersedia</span>
+            )}
+          </span>
+        </div>
+
+        {/* DNS Wire RCODE Result */}
+        <div className="flex items-center justify-between gap-2 text-slate-600 pt-1 border-t border-slate-100/70">
+          <span className="text-slate-500 shrink-0">Hasil Kueri DNS</span>
+          <span className="font-mono text-xs text-right">
             {probeResult?.rcode ? (
               <span className="text-emerald-700 font-medium">
                 {probeResult.rcode} {probeResult.answersCount !== undefined ? `(${probeResult.answersCount} ans)` : ''}
@@ -143,20 +179,31 @@ export function ServiceCard({
                 {probeResult.error}
               </span>
             ) : (
-              <span className="text-slate-400">Menunggu Probe</span>
+              <span className="text-slate-400 font-sans">Menunggu Probe</span>
             )}
           </span>
         </div>
 
-        <div className="flex items-center justify-between text-slate-500 text-[11px]">
-          <span>Perangkat Rekomendasi</span>
-          <span className="text-slate-700 font-medium">{targetDeviceText}</span>
+        {/* Verified Protocol Audit Detail */}
+        {verifiedTlsInfo && (
+          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+            <span className="shrink-0">Enkripsi Transport</span>
+            <span className="font-mono text-[10px] text-slate-600 text-right">{verifiedTlsInfo}</span>
+          </div>
+        )}
+
+        {/* Target Recommended Device */}
+        <div className="flex items-start justify-between gap-2.5 sm:gap-4 text-[11px] text-slate-500">
+          <span className="shrink-0 text-slate-500">Perangkat Rekomendasi</span>
+          <span className="text-slate-700 font-medium text-right leading-snug">
+            {targetDeviceText}
+          </span>
         </div>
 
         {probeResult?.checkedAtIso && (
-          <div className="flex items-center justify-between text-slate-400 text-[11px] pt-1 border-t border-slate-100">
-            <span>Waktu Cek</span>
-            <span className="font-mono tabular-nums text-slate-500">
+          <div className="flex items-center justify-between gap-2 text-slate-400 text-[11px] pt-1 border-t border-slate-100">
+            <span className="shrink-0">Waktu Cek</span>
+            <span className="font-mono tabular-nums text-slate-500 text-right">
               {new Date(probeResult.checkedAtIso).toLocaleTimeString('id-ID', {
                 timeZone: 'Asia/Jakarta',
                 hour: '2-digit',

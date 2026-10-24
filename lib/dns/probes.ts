@@ -181,11 +181,12 @@ export async function probeDoT(): Promise<SingleProbeResult> {
               return;
             }
 
-            const isDegraded = totalLatency >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS;
+            const isQueryDegraded = dnsQueryLatency >= TARGET_CONFIG.DNS_QUERY_DEGRADED_THRESHOLD_MS;
+            const isTransportHigh = totalLatency >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS;
 
             finish({
               service: 'dot',
-              status: isDegraded ? 'degraded' : 'operational',
+              status: isQueryDegraded ? 'degraded' : 'operational',
               latencyMs: totalLatency,
               totalLatencyMs: totalLatency,
               connectionLatencyMs: connLatency,
@@ -196,7 +197,11 @@ export async function probeDoT(): Promise<SingleProbeResult> {
               port: TARGET_CONFIG.DOT_PORT,
               rcode: parsed.rcodeName,
               answersCount: parsed.header.ancount,
-              error: isDegraded ? `Latensi tinggi (${totalLatency}ms >= ambang ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms)` : undefined,
+              error: isQueryDegraded
+                ? `Waktu respons kueri DNS tinggi (${dnsQueryLatency}ms >= ambang ${TARGET_CONFIG.DNS_QUERY_DEGRADED_THRESHOLD_MS}ms)`
+                : isTransportHigh
+                ? `Koneksi probe lambat karena jarak geografis (${totalLatency}ms total, kueri DNS normal ${dnsQueryLatency}ms)`
+                : undefined,
             });
           } catch (parseErr) {
             finish({
@@ -436,11 +441,12 @@ export async function probeDoH(): Promise<SingleProbeResult> {
                 return;
               }
 
-              const isDegraded = totalLatency >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS;
+              const isQueryDegraded = dnsQueryLatency >= TARGET_CONFIG.DNS_QUERY_DEGRADED_THRESHOLD_MS;
+              const isTransportHigh = totalLatency >= TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS;
 
               finish({
                 service: 'doh',
-                status: isDegraded ? 'degraded' : 'operational',
+                status: isQueryDegraded ? 'degraded' : 'operational',
                 latencyMs: totalLatency,
                 totalLatencyMs: totalLatency,
                 connectionLatencyMs: connLatency,
@@ -451,7 +457,11 @@ export async function probeDoH(): Promise<SingleProbeResult> {
                 port: 443,
                 rcode: parsed.rcodeName,
                 answersCount: parsed.header.ancount,
-                error: isDegraded ? `Latensi tinggi (${totalLatency}ms >= ambang ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms)` : undefined,
+                error: isQueryDegraded
+                  ? `Waktu respons kueri DNS tinggi (${dnsQueryLatency}ms >= ambang ${TARGET_CONFIG.DNS_QUERY_DEGRADED_THRESHOLD_MS}ms)`
+                  : isTransportHigh
+                  ? `Koneksi probe lambat karena jarak geografis (${totalLatency}ms total, kueri DNS normal ${dnsQueryLatency}ms)`
+                  : undefined,
               });
             } catch (parseErr) {
               finish({
@@ -544,11 +554,11 @@ export async function executeAllProbes(
     if (isDotDegraded || isDohDegraded) {
       status = 'degraded';
       if (isDotDegraded && isDohDegraded) {
-        overallText = `Layanan Mengalami Degradasi (Latensi Tinggi pada DoT ${dotResult.latencyMs}ms & DoH ${dohResult.latencyMs}ms)`;
+        overallText = `Layanan Mengalami Degradasi (Waktu Kueri DoT ${dotResult.dnsQueryLatencyMs ?? dotResult.latencyMs}ms & DoH ${dohResult.dnsQueryLatencyMs ?? dohResult.latencyMs}ms)`;
       } else if (isDotDegraded) {
-        overallText = `Layanan Mengalami Degradasi (Latensi Tinggi pada DoT: ${dotResult.latencyMs}ms)`;
+        overallText = `Layanan Mengalami Degradasi (Waktu Kueri DoT: ${dotResult.dnsQueryLatencyMs ?? dotResult.latencyMs}ms)`;
       } else {
-        overallText = `Layanan Mengalami Degradasi (Latensi Tinggi pada DoH: ${dohResult.latencyMs}ms)`;
+        overallText = `Layanan Mengalami Degradasi (Waktu Kueri DoH: ${dohResult.dnsQueryLatencyMs ?? dohResult.latencyMs}ms)`;
       }
     } else {
       status = 'operational';

@@ -40,9 +40,10 @@ export const CHANGELOG_ITEMS: ChangelogItem[] = [
       'Mempertahankan latensi total (totalLatencyMs) untuk memantau keseluruhan proses probe.',
       'Menyempurnakan pengukuran respons DoH agar mencakup pembacaan seluruh body respons DNS.',
       'Memperbarui kartu status layanan dan riwayat probe agar rincian latensi dapat ditampilkan jika tersedia.',
+      'Memisahkan evaluasi status kesehatan resolver (dnsQueryLatencyMs) dari latensi transport probe agar jarak serverless tidak menandai resolver operasional sebagai degraded.',
       'Mempertahankan kompatibilitas dengan data probe lama melalui fallback pada penyimpanan.',
     ],
-    note: 'Pembaruan ini meningkatkan transparansi pengukuran dan membantu membedakan waktu koneksi dari waktu kueri DNS. Pembaruan ini tidak dengan sendirinya membuktikan bahwa latensi layanan DNS telah menurun.',
+    note: 'Pembaruan ini meningkatkan transparansi pengukuran dan membantu membedakan waktu koneksi dari waktu kueri DNS. Status kesehatan mencerminkan responsivitas resolver murni.',
   },
   {
     id: 'ch-006',

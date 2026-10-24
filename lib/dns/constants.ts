@@ -36,9 +36,15 @@ export const TARGET_CONFIG = {
   TEST_DOMAIN: 'example.com',
   TIMEOUT_MS: 5000,
   /**
-   * Explicit latency threshold in milliseconds.
-   * If a probe successfully resolves but takes >= 600ms (e.g. ~1 second),
-   * the single probe and overall status are marked as 'degraded' due to high response time.
+   * DNS Query degradation threshold in milliseconds.
+   * If pure DNS query processing time exceeds this threshold,
+   * the resolver is considered degraded.
+   */
+  DNS_QUERY_DEGRADED_THRESHOLD_MS: 350,
+  /**
+   * Transport latency advisory threshold in milliseconds.
+   * Total probe duration >= this threshold indicates cross-continent or slow probe transport,
+   * logged diagnostically without falsely degrading a healthy resolver.
    */
   LATENCY_DEGRADED_THRESHOLD_MS: 600,
   /**
@@ -47,3 +53,4 @@ export const TARGET_CONFIG = {
    */
   STALE_MINUTES_THRESHOLD: 1440, // 24 hours
 } as const;
+

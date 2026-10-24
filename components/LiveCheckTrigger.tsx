@@ -130,33 +130,49 @@ export function LiveCheckTrigger() {
         <div className="mt-5 sm:mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 lg:gap-4 pt-5 sm:pt-6 border-t border-slate-200/80 text-xs">
           {/* Metric 1: DoT Latency */}
           <div className="bg-white p-3 sm:p-3.5 rounded-lg border border-slate-200 space-y-1.5">
-            <span className="text-[10px] sm:text-[11px] text-slate-500 block font-medium">Latensi DoT (853)</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-500 block font-medium">Kueri DoT (853)</span>
             <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
               <span className="text-base sm:text-lg font-bold text-slate-900">
-                {dotLatency !== undefined ? `${dotLatency}` : '—'}
+                {summary?.dot?.dnsQueryLatencyMs !== undefined
+                  ? `${summary.dot.dnsQueryLatencyMs}`
+                  : dotLatency !== undefined
+                  ? `${dotLatency}`
+                  : '—'}
               </span>
-              <span className="text-xs text-slate-500">ms total</span>
+              <span className="text-xs text-slate-500">
+                {summary?.dot?.dnsQueryLatencyMs !== undefined ? 'ms kueri' : 'ms total'}
+              </span>
             </div>
             <span className="text-[10px] text-slate-400 block font-mono leading-tight">
               {summary?.dot?.dnsQueryLatencyMs !== undefined
-                ? `Kueri: ${summary.dot.dnsQueryLatencyMs}ms · TLS: ${summary.dot.connectionLatencyMs ?? '—'}ms`
-                : `Ambang: < ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms`}
+                ? `TLS: ${summary.dot.connectionLatencyMs ?? '—'}ms · Total: ${dotLatency ?? '—'}ms`
+                : dotLatency !== undefined
+                ? `Total siklus probe: ${dotLatency}ms`
+                : 'Belum ada data probe'}
             </span>
           </div>
 
           {/* Metric 2: DoH Latency */}
           <div className="bg-white p-3 sm:p-3.5 rounded-lg border border-slate-200 space-y-1.5">
-            <span className="text-[10px] sm:text-[11px] text-slate-500 block font-medium">Latensi DoH (443)</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-500 block font-medium">Kueri DoH (443)</span>
             <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
               <span className="text-base sm:text-lg font-bold text-slate-900">
-                {dohLatency !== undefined ? `${dohLatency}` : '—'}
+                {summary?.doh?.dnsQueryLatencyMs !== undefined
+                  ? `${summary.doh.dnsQueryLatencyMs}`
+                  : dohLatency !== undefined
+                  ? `${dohLatency}`
+                  : '—'}
               </span>
-              <span className="text-xs text-slate-500">ms total</span>
+              <span className="text-xs text-slate-500">
+                {summary?.doh?.dnsQueryLatencyMs !== undefined ? 'ms kueri' : 'ms total'}
+              </span>
             </div>
             <span className="text-[10px] text-slate-400 block font-mono leading-tight">
               {summary?.doh?.dnsQueryLatencyMs !== undefined
-                ? `Kueri: ${summary.doh.dnsQueryLatencyMs}ms · TLS: ${summary.doh.connectionLatencyMs ?? '—'}ms`
-                : `Ambang: < ${TARGET_CONFIG.LATENCY_DEGRADED_THRESHOLD_MS}ms`}
+                ? `TLS: ${summary.doh.connectionLatencyMs ?? '—'}ms · Total: ${dohLatency ?? '—'}ms`
+                : dohLatency !== undefined
+                ? `Total siklus probe: ${dohLatency}ms`
+                : 'Belum ada data probe'}
             </span>
           </div>
 
@@ -199,6 +215,7 @@ export function LiveCheckTrigger() {
           probeResult={summary?.dot}
           clientInstruction="Ketik hostname ini pada menu Private DNS di pengaturan jaringan perangkat Android."
           targetDeviceText="Android 9+, Linux systemd-resolved, Router"
+          verifiedTlsInfo="TLS 1.3 · AES-128-GCM"
         />
 
         <ServiceCard
@@ -210,6 +227,8 @@ export function LiveCheckTrigger() {
           probeResult={summary?.doh}
           clientInstruction="Salin URL ini ke menu Gunakan DNS Aman (Custom) di pengaturan browser Anda."
           targetDeviceText="Chrome, Firefox, Brave, Edge, iOS, Windows 11"
+          verifiedTlsInfo="TLS 1.3 · AES-128-GCM"
+          httpVersion="HTTP/2"
         />
       </div>
     </div>

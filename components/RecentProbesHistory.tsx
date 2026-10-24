@@ -76,7 +76,7 @@ export function RecentProbesHistory() {
                   <th className="py-3 px-4 font-semibold">Waktu (WIB)</th>
                   <th className="py-3 px-4 font-semibold">Protokol</th>
                   <th className="py-3 px-4 font-semibold">Status</th>
-                  <th className="py-3 px-4 font-semibold text-right">Latensi</th>
+                  <th className="py-3 px-4 font-semibold text-right">Kueri DNS / RTT</th>
                   <th className="py-3 px-4 font-semibold">Hasil Kueri</th>
                 </tr>
               </thead>
@@ -100,12 +100,27 @@ export function RecentProbesHistory() {
                     <td className="py-2.5 px-4">
                       <StatusIndicator status={log.status} size="sm" />
                     </td>
-                    <td className="py-2.5 px-4 font-mono tabular-nums text-right font-medium text-slate-900 whitespace-nowrap">
-                      <div>{log.latencyMs} ms</div>
-                      {log.dnsQueryLatencyMs !== undefined && (
-                        <div className="text-[10px] text-slate-400 font-normal">
-                          DNS: {log.dnsQueryLatencyMs}ms · TLS: {log.connectionLatencyMs ?? '—'}ms
-                        </div>
+                    <td className="py-2.5 px-4 font-mono tabular-nums text-right whitespace-nowrap">
+                      {log.dnsQueryLatencyMs !== undefined ? (
+                        <>
+                          <div className="font-semibold text-slate-900">
+                            {log.dnsQueryLatencyMs} ms{' '}
+                            <span className="text-[10px] text-slate-500 font-sans font-normal">kueri</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-normal font-mono">
+                            TLS: {log.connectionLatencyMs ?? '—'}ms · Total: {log.latencyMs}ms
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="font-medium text-slate-900">
+                            {log.latencyMs} ms{' '}
+                            <span className="text-[10px] text-slate-400 font-sans font-normal">(total probe)</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-sans font-normal">
+                            Rincian kueri belum ada
+                          </div>
+                        </>
                       )}
                     </td>
                     <td className="py-2.5 px-4 font-mono text-[11px]">
