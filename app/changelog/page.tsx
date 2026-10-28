@@ -138,7 +138,13 @@ export default function ChangelogPage() {
                       <span aria-hidden="true" className="text-slate-300">
                         ·
                       </span>
-                      <span className="text-amber-700">
+                      <span
+                        className={
+                          item.impact === 'critical'
+                            ? 'inline-flex items-center gap-1 font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded text-[11px]'
+                            : 'text-amber-700 font-medium'
+                        }
+                      >
                         {IMPACT_LABELS[item.impact] || `Dampak: ${item.impact}`}
                       </span>
                     </>
@@ -157,17 +163,23 @@ export default function ChangelogPage() {
 
                 {/* Bulleted details */}
                 {item.details && item.details.length > 0 && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-700 shadow-xs space-y-3">
+                  <div
+                    className={`border rounded-xl p-4 text-xs shadow-xs space-y-3 ${
+                      item.impact === 'critical'
+                        ? 'bg-rose-50/40 border-rose-200/80 text-slate-800'
+                        : 'bg-slate-50 border-slate-200 text-slate-700'
+                    }`}
+                  >
                     <ul className="space-y-1.5 list-disc pl-4 leading-relaxed">
                       {item.details.map((detail, idx) => (
-                        <li key={idx} className="text-slate-600">
+                        <li key={idx} className="text-slate-700">
                           {detail}
                         </li>
                       ))}
                     </ul>
                     {item.note && (
-                      <p className="text-xs text-slate-500 pt-2 border-t border-slate-200/80 leading-relaxed">
-                        <strong className="text-slate-700 font-medium">Catatan:</strong> {item.note}
+                      <p className="text-xs text-slate-600 pt-2 border-t border-slate-200/80 leading-relaxed">
+                        <strong className="text-slate-800 font-medium">Catatan Penting:</strong> {item.note}
                       </p>
                     )}
                   </div>
@@ -181,16 +193,22 @@ export default function ChangelogPage() {
       {/* Bagian Rencana Peningkatan Berikutnya */}
       <section className="pt-8 border-t border-slate-200 space-y-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
-            <Compass className="w-3.5 h-3.5 text-blue-600" />
-            <span>Agenda Pengembangan</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+            <Compass className="w-3.5 h-3.5 text-slate-500" />
+            <span>Agenda Pengembangan (Diarsipkan)</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Rencana Peningkatan Berikutnya
+            Rencana Peningkatan Layanan
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
-            Daftar agenda pengembangan teknis yang sedang direncanakan untuk WibufyDNS. Bagian ini merupakan rencana kerja aktif, bukan catatan pekerjaan yang sudah selesai.
+            Daftar roadmap dan agenda teknis yang dipersiapkan selama masa eksplorasi WibufyDNS. Seluruh rencana berikut diarsipkan sebagai dokumentasi pembelajaran dan referensi untuk fase selanjutnya.
           </p>
+        </div>
+
+        {/* Notice of archive status */}
+        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600">
+          <span className="font-semibold text-slate-800 shrink-0">Status Eksperimen:</span>
+          <span>Fase eksperimen pertama telah selesai dengan sukses. Dokumentasi arsitektur dan repositori konfigurasi tetap terbuka sebagai referensi publik.</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
@@ -205,7 +223,7 @@ export default function ChangelogPage() {
                     {plan.category}
                   </span>
                   <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                    Direncanakan
+                    {plan.status || 'Diarsipkan'}
                   </span>
                 </div>
                 <h3 className="text-sm font-semibold text-slate-900">

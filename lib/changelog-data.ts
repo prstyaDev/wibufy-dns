@@ -16,16 +16,34 @@ export interface ImprovementPlanItem {
   title: string;
   summary: string;
   category: string;
+  status?: 'Direncanakan' | 'Diarsipkan';
 }
 
 export const IMPACT_LABELS: Record<string, string> = {
   none: 'Tanpa Gangguan',
   minor: 'Dampak Ringan',
   major: 'Dampak Signifikan',
-  critical: 'Dampak Kritis',
+  critical: 'Penutupan Eksperimen (Penting)',
 };
 
 export const CHANGELOG_ITEMS: ChangelogItem[] = [
+  {
+    id: 'ch-009',
+    date: '2026-10-28',
+    title: 'Penutupan Fase Eksperimen & Terima Kasih untuk Semua Pengguna',
+    category: 'Pemeliharaan',
+    impact: 'critical',
+    summary:
+      'Eksperimen WibufyDNS kali ini sampai di penghujungnya. Berawal dari proyek coba-coba hingga menjadi resolver DNS terenkripsi yang berarti, terima kasih banyak untuk semua yang sudah support, memakai, dan ikut membantu lewat saran maupun masukan selama masa eksperimen.',
+    details: [
+      'Penonaktifan Sementara Endpoint: Resolver DNS-over-TLS (dns.wibufy.biz.id:853) dan DNS-over-HTTPS (https://doh.wibufy.biz.id/dns-query) dijadwalkan dinonaktifkan per 29 Oktober 2026 menandai berakhirnya fase eksperimen ini.',
+      'Tindakan Pengguna: Agar koneksi internet perangkat Anda tetap lancar, harap segera kembalikan pengaturan DNS Pribadi (Private DNS) ke "Otomatis" atau beralih sementara ke resolver alternatif seperti Cloudflare (1.1.1.1), AdGuard DNS (dns.adguard-dns.com), atau Quad9 (9.9.9.9).',
+      'Pencapaian Eksperimen Bersama: Implementasi DoT & DoH cepat, enkripsi AES-256-GCM, validasi DNSSEC, penyaringan AdGuard Home (iklan, tracker, malware), hingga monitoring probe ketersediaan RFC 7858 & RFC 8484.',
+      'Rencana Fase Selanjutnya: Agenda riset dan pengembangan teknis diarsipkan sebagai persiapan untuk rencana migrasi VPS dan fase selanjutnya di masa mendatang.',
+      'Apresiasi Pengguna: Kalian semua jadi alasan untuk terus belajar hal baru, ngulik lebih dalam, dan mendapat banyak pengalaman berharga. Terima kasih sudah menjadi bagian dari perjalanan ini! ♡',
+    ],
+    note: 'Jika setelah 29 Oktober 2026 koneksi internet Anda mengalami kendala saat browsing, pastikan Anda telah menonaktifkan hostname dns.wibufy.biz.id dari pengaturan Private DNS perangkat Anda.',
+  },
   {
     id: 'ch-008',
     date: '2026-10-24',
@@ -154,24 +172,28 @@ export const IMPROVEMENT_PLANS: ImprovementPlanItem[] = [
     title: 'Distribusi Multi-Upstream & Smart Fallback',
     summary: 'Mengevaluasi konfigurasi parallel query ke upstream berlatensi terendah dengan failover otomatis demi redundansi maksimal.',
     category: 'Resolver & Konektivitas',
+    status: 'Diarsipkan',
   },
   {
     id: 'plan-02',
     title: 'Profil Terenkripsi Apple (.mobileconfig)',
     summary: 'Menyediakan profil konfigurasi bertanda tangan digital (signed profile) untuk instalasi DoH/DoT terenkripsi sekali klik pada iOS dan macOS.',
     category: 'Integrasi Klien',
+    status: 'Diarsipkan',
   },
   {
     id: 'plan-03',
     title: 'Automasi Validasi Filter & Whitelist',
     summary: 'Membangun pipeline audit berkala untuk mendeteksi dan mencegah false positive secara proaktif pada domain esensial dan portal publik.',
     category: 'Penyaringan Domain',
+    status: 'Diarsipkan',
   },
   {
     id: 'plan-04',
     title: 'Eksplorasi DNS-over-QUIC (DoQ)',
     summary: 'Menguji implementasi DNS-over-QUIC (RFC 9250 port 853) untuk koneksi seluler tanpa hambatan head-of-line blocking.',
     category: 'Riset Protokol',
+    status: 'Diarsipkan',
   },
 ];
 

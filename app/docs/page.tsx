@@ -17,6 +17,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { CopyButton } from '@/components/CopyButton';
+import { SunsetNoticeBanner } from '@/components/SunsetNoticeBanner';
 
 export const metadata: Metadata = {
   title: 'Dokumentasi Teknis & Panduan Lanjutan — WibufyDNS',
@@ -43,7 +44,10 @@ const DOCS_NAV_ITEMS = [
 
 export default function DocsPage() {
   return (
-    <div className="max-w-6xl mx-auto py-4">
+    <div className="max-w-6xl mx-auto py-4 space-y-6 sm:space-y-8">
+      {/* Sunset / EOL Notice Banner */}
+      <SunsetNoticeBanner />
+
       {/* Header */}
       <header className="space-y-3 border-b border-slate-200 pb-8 mb-8 sm:mb-10">
         <div className="inline-flex items-center gap-1.5 text-xs text-blue-600 font-medium">

@@ -4,12 +4,16 @@ import { LiveCheckTrigger } from '@/components/LiveCheckTrigger';
 import { QuickSetupSection } from '@/components/QuickSetupSection';
 import { PrivacyProtectionSection } from '@/components/PrivacyProtectionSection';
 import { RecentProbesHistory } from '@/components/RecentProbesHistory';
+import { SunsetNoticeBanner } from '@/components/SunsetNoticeBanner';
 
 export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   return (
-    <div className="space-y-12 sm:space-y-14">
+    <div className="space-y-10 sm:space-y-12">
+      {/* Sunset / EOL Notice Banner */}
+      <SunsetNoticeBanner />
+
       {/* Hero Section */}
       <section className="max-w-4xl pb-0 sm:pb-2">
         {/* Concise Hierarchical Kicker (20-24px to title) */}
