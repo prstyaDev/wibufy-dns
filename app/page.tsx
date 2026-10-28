@@ -50,8 +50,8 @@ export default function HomePage() {
       </section>
 
       {/* Section 1: Live Status Dashboard & DoT/DoH Cards (48-56px from hero buttons) */}
-      <section id="status" className="scroll-mt-24">
-        <span id="monitoring" className="scroll-mt-24 -top-24 relative block" aria-hidden="true" />
+      <section id="status" className="scroll-mt-6 sm:scroll-mt-8">
+        <span id="monitoring" aria-hidden="true" />
         {/* Status Section Header (24-28px to card below) */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-1 border-b border-slate-200 pb-3 mb-6 sm:mb-7">
           <div className="space-y-0.5">

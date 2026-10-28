@@ -11,7 +11,7 @@ export function QuickSetupSection() {
   const [activeTab, setActiveTab] = useState<PlatformTab>('android');
 
   return (
-    <section id="quick-setup" className="scroll-mt-24 space-y-6">
+    <section id="quick-setup" className="scroll-mt-6 sm:scroll-mt-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
           <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider block mb-1">

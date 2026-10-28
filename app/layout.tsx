@@ -54,7 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="id" className="scroll-smooth bg-white text-slate-900 antialiased">
+    <html lang="id" className="scroll-smooth scroll-pt-20 sm:scroll-pt-24 bg-white text-slate-900 antialiased">
       <body className="min-h-screen flex flex-col justify-between bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900">
         <StatusProvider initialSummary={initialSummary}>
           <Header />

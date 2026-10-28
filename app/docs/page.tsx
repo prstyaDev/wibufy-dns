@@ -85,7 +85,7 @@ export default function DocsPage() {
           </div>
 
           {/* Section 1: Mengenal WibufyDNS */}
-          <section id="tentang-wibufy" className="space-y-4 scroll-mt-24">
+          <section id="tentang-wibufy" className="space-y-4 scroll-mt-6 sm:scroll-mt-8">
             <div className="flex items-center gap-2 text-blue-600 border-b border-slate-200/80 pb-3">
               <Lock className="w-5 h-5 shrink-0" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -152,7 +152,7 @@ export default function DocsPage() {
           </section>
 
           {/* Section 2: Android Private DNS */}
-          <section id="android-dot" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-24">
+          <section id="android-dot" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-6 sm:scroll-mt-8">
             <div className="flex items-center gap-2 text-blue-600 border-b border-slate-200/80 pb-3">
               <Smartphone className="w-5 h-5 shrink-0" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -220,7 +220,7 @@ export default function DocsPage() {
           </section>
 
           {/* Section 3: Browser DoH */}
-          <section id="browser-doh" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-24">
+          <section id="browser-doh" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-6 sm:scroll-mt-8">
             <div className="flex items-center gap-2 text-blue-600 border-b border-slate-200/80 pb-3">
               <Globe className="w-5 h-5 shrink-0" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -287,7 +287,7 @@ export default function DocsPage() {
           </section>
 
           {/* Section 4: Windows 11 */}
-          <section id="windows-doh" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-24">
+          <section id="windows-doh" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-6 sm:scroll-mt-8">
             <div className="flex items-center gap-2 text-blue-600 border-b border-slate-200/80 pb-3">
               <Monitor className="w-5 h-5 shrink-0" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -333,7 +333,7 @@ export default function DocsPage() {
           </section>
 
           {/* Section 5: Apple iOS & macOS */}
-          <section id="ios-macos" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-24">
+          <section id="ios-macos" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-6 sm:scroll-mt-8">
             <div className="flex items-center gap-2 text-blue-600 border-b border-slate-200/80 pb-3">
               <Apple className="w-5 h-5 shrink-0" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -376,7 +376,7 @@ export default function DocsPage() {
           </section>
 
           {/* Section 6: Router Setup */}
-          <section id="router-setup" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-24">
+          <section id="router-setup" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-6 sm:scroll-mt-8">
             <div className="flex items-center gap-2 text-blue-600 border-b border-slate-200/80 pb-3">
               <Network className="w-5 h-5 shrink-0" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -440,7 +440,7 @@ export default function DocsPage() {
           </section>
 
           {/* Section 7: Troubleshooting */}
-          <section id="troubleshooting" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-24">
+          <section id="troubleshooting" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-6 sm:scroll-mt-8">
             <div className="flex items-center gap-2 text-amber-600 border-b border-slate-200/80 pb-3">
               <AlertTriangle className="w-5 h-5 shrink-0" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -524,7 +524,7 @@ export default function DocsPage() {
           </section>
 
           {/* Section 8: FAQ */}
-          <section id="faq" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-24">
+          <section id="faq" className="space-y-4 pt-8 border-t border-slate-200 scroll-mt-6 sm:scroll-mt-8">
             <div className="flex items-center gap-2 text-blue-600 border-b border-slate-200/80 pb-3">
               <HelpCircle className="w-5 h-5 shrink-0" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
